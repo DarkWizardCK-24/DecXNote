@@ -1,1 +1,57 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"deck-note","appId":"1:190984185869:android:a20955d6339801a263cd44","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"deck-note","configurations":{"android":"1:190984185869:android:a20955d6339801a263cd44","ios":"1:190984185869:ios:b639bc84accb343363cd44","web":"1:190984185869:web:d333cea80087f6af63cd44"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "deck-note",
+          "appId": "1:190984185869:android:a20955d6339801a263cd44",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "deck-note",
+          "configurations": {
+            "android": "1:190984185869:android:a20955d6339801a263cd44",
+            "ios": "1:190984185869:ios:b639bc84accb343363cd44",
+            "web": "1:190984185869:web:d333cea80087f6af63cd44"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(js|css|woff2|ttf|png|jpg|svg|ico)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=31536000, immutable"
+          }
+        ]
+      },
+      {
+        "source": "/@(index.html|flutter_service_worker.js|version.json|manifest.json)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      }
+    ]
+  }
+}

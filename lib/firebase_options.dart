@@ -55,13 +55,13 @@ class DefaultFirebaseOptions {
 
   /// Windows uses the web app registration (same project).
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyBKag6h-pSiUKdQy0UEqY9eJ-pegSP4asU',
-    appId: '1:190984185869:web:d333cea80087f6af63cd44',
+    apiKey: 'AIzaSyDgBfpOhkKxh_zz3Vrma3vtACAocBFyC1M',
+    appId: '1:190984185869:web:f3dfbb1c33176a8f63cd44',
     messagingSenderId: '190984185869',
     projectId: 'deck-note',
     authDomain: 'deck-note.firebaseapp.com',
     storageBucket: 'deck-note.firebasestorage.app',
-    measurementId: 'G-Q1SX6MV4ME',
+    measurementId: 'G-RWL5PTCNPV',
   );
 
   static const FirebaseOptions android = FirebaseOptions(

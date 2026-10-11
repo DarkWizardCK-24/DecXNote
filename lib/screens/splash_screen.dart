@@ -1,3 +1,4 @@
+import 'package:deck_note/widgets/app_logo.dart';
 import 'package:deck_note/providers/auth_provider.dart';
 import 'package:deck_note/screens/home_screen.dart';
 import 'package:deck_note/screens/login_screen.dart';
@@ -5,7 +6,6 @@ import 'package:deck_note/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -54,25 +54,7 @@ class _SplashScreenState extends State<SplashScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                    padding: const EdgeInsets.all(30),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: AppTheme.primaryGradient,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppTheme.primaryColor.withOpacity(0.5),
-                          blurRadius: 30,
-                          spreadRadius: 10,
-                        ),
-                      ],
-                    ),
-                    child: const FaIcon(
-                      FontAwesomeIcons.noteSticky,
-                      size: 80,
-                      color: Colors.white,
-                    ),
-                  )
+              const AppLogo(size: 150, glow: Color(0xFFFF6F61))
                   .animate()
                   .scale(duration: 600.ms, curve: Curves.easeOut)
                   .then()

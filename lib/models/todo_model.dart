@@ -55,6 +55,12 @@ class TodoModel {
   final int colorIndex;
   final List<ChecklistItem> checklist;
 
+  /// Optional deadline (older documents have none).
+  final DateTime? dueDate;
+
+  /// Pinned tasks float to the top of the deck.
+  final bool pinned;
+
   TodoModel({
     required this.taskId,
     required this.userId,
@@ -67,6 +73,8 @@ class TodoModel {
     this.isCompleted = false,
     required this.colorIndex,
     this.checklist = const [],
+    this.dueDate,
+    this.pinned = false,
   });
 
   // Convert TodoModel to Map for Firestore
@@ -85,6 +93,8 @@ class TodoModel {
       'isCompleted': isCompleted,
       'colorIndex': colorIndex,
       'checklist': checklist.map((item) => item.toMap()).toList(),
+      'dueDate': dueDate != null ? Timestamp.fromDate(dueDate!) : null,
+      'pinned': pinned,
     };
   }
 
@@ -112,8 +122,12 @@ class TodoModel {
             ? _parseTimestamp(map['completedAt'])
             : null,
         isCompleted: map['isCompleted'] ?? false,
-        colorIndex: map['colorIndex'] ?? 0,
+        colorIndex: map['colorIndex'] is int ? map['colorIndex'] : 0,
         checklist: checklistItems,
+        dueDate: map['dueDate'] != null
+            ? _parseTimestamp(map['dueDate'])
+            : null,
+        pinned: map['pinned'] == true,
       );
     } catch (e) {
       rethrow;
@@ -128,7 +142,9 @@ class TodoModel {
         orElse: () => Priority.medium,
       );
     } else if (priority is int) {
-      return Priority.values[priority];
+      return priority >= 0 && priority < Priority.values.length
+          ? Priority.values[priority]
+          : Priority.medium;
     }
     return Priority.medium;
   }
@@ -171,6 +187,9 @@ class TodoModel {
     bool? isCompleted,
     int? colorIndex,
     List<ChecklistItem>? checklist,
+    DateTime? dueDate,
+    bool clearDueDate = false,
+    bool? pinned,
   }) {
     return TodoModel(
       taskId: taskId ?? this.taskId,
@@ -184,6 +203,21 @@ class TodoModel {
       isCompleted: isCompleted ?? this.isCompleted,
       colorIndex: colorIndex ?? this.colorIndex,
       checklist: checklist ?? this.checklist,
+      dueDate: clearDueDate ? null : (dueDate ?? this.dueDate),
+      pinned: pinned ?? this.pinned,
     );
   }
+
+  static DateTime _day(DateTime d) => DateTime(d.year, d.month, d.day);
+
+  /// Past its due day and still open.
+  bool isOverdue(DateTime now) =>
+      !isCompleted && dueDate != null && _day(dueDate!).isBefore(_day(now));
+
+  bool isDueToday(DateTime now) =>
+      !isCompleted && dueDate != null && _day(dueDate!) == _day(now);
+
+  /// Whole days from today to the due date (negative when overdue).
+  int? daysUntilDue(DateTime now) =>
+      dueDate == null ? null : _day(dueDate!).difference(_day(now)).inDays;
 }

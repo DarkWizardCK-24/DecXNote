@@ -1,9 +1,11 @@
+import 'package:deck_note/widgets/app_logo.dart';
 import 'package:deck_note/providers/auth_provider.dart';
 import 'package:deck_note/screens/home_screen.dart';
 import 'package:deck_note/screens/register_screen.dart';
 import 'package:deck_note/theme/app_theme.dart';
 import 'package:deck_note/widgets/glass_button.dart';
 import 'package:deck_note/widgets/glass_text_field.dart';
+import 'package:deck_note/utils/breakpoints.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -69,31 +71,16 @@ class _LoginScreenState extends State<LoginScreen> {
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.symmetric(
+                horizontal: contentGutter(context),
+                vertical: 24,
+              ),
               child: Form(
                 key: _formKey,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: AppTheme.primaryGradient,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.primaryColor.withOpacity(0.3),
-                            blurRadius: 20,
-                            spreadRadius: 5,
-                          ),
-                        ],
-                      ),
-                      child: const FaIcon(
-                        FontAwesomeIcons.noteSticky,
-                        size: 60,
-                        color: Colors.white,
-                      ),
-                    ).animate()
+                    const AppLogo(size: 110, glow: Color(0xFFFF6F61)).animate()
                       .scale(duration: 600.ms, curve: Curves.easeOut),
                     
                     const SizedBox(height: 30),

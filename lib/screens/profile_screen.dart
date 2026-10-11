@@ -1,4 +1,5 @@
 import 'package:deck_note/providers/auth_provider.dart';
+import 'package:deck_note/providers/todo_provider.dart';
 import 'package:deck_note/screens/login_screen.dart';
 import 'package:deck_note/theme/app_theme.dart';
 import 'package:flutter/material.dart';
@@ -9,36 +10,44 @@ import 'package:glassmorphism/glassmorphism.dart';
 import 'profile_edit_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({super.key});
+  /// True when shown inside the wide layout's shell (no back button).
+  final bool embedded;
+
+  const ProfileScreen({super.key, this.embedded = false});
 
   @override
   Widget build(BuildContext context) {
+    final content = Column(
+      children: [
+        _buildAppBar(context),
+        Expanded(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 560),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    _buildProfileHeader(context),
+                    const SizedBox(height: 30),
+                    _buildProfileInfo(context),
+                    const SizedBox(height: 30),
+                    _buildActionButtons(context),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+    if (embedded) return content;
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
           gradient: AppTheme.backgroundGradient,
         ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildAppBar(context),
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      _buildProfileHeader(context),
-                      const SizedBox(height: 30),
-                      _buildProfileInfo(context),
-                      const SizedBox(height: 30),
-                      _buildActionButtons(context),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+        child: SafeArea(child: content),
       ),
     );
   }
@@ -48,14 +57,17 @@ class ProfileScreen extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       child: Row(
         children: [
-          IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: const FaIcon(
-              FontAwesomeIcons.arrowLeft,
-              color: Colors.white,
+          if (!embedded) ...[
+            IconButton(
+              tooltip: 'Back',
+              onPressed: () => Navigator.of(context).pop(),
+              icon: const FaIcon(
+                FontAwesomeIcons.arrowLeft,
+                color: Colors.white,
+              ),
             ),
-          ),
-          const SizedBox(width: 10),
+            const SizedBox(width: 10),
+          ],
           const Text(
             'Profile',
             style: TextStyle(
@@ -83,7 +95,7 @@ class ProfileScreen extends StatelessWidget {
                 gradient: AppTheme.primaryGradient,
                 boxShadow: [
                   BoxShadow(
-                    color: AppTheme.primaryColor.withOpacity(0.5),
+                    color: AppTheme.primaryColor.withValues(alpha: 0.5),
                     blurRadius: 30,
                     spreadRadius: 10,
                   ),
@@ -136,16 +148,16 @@ class ProfileScreen extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.white.withOpacity(0.1),
-              Colors.white.withOpacity(0.05),
+              Colors.white.withValues(alpha: 0.1),
+              Colors.white.withValues(alpha: 0.05),
             ],
           ),
           borderGradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.white.withOpacity(0.2),
-              Colors.white.withOpacity(0.1),
+              Colors.white.withValues(alpha: 0.2),
+              Colors.white.withValues(alpha: 0.1),
             ],
           ),
           child: Padding(
@@ -158,7 +170,7 @@ class ProfileScreen extends StatelessWidget {
                   authProvider.user?.email ?? 'Not available',
                 ),
                 const SizedBox(height: 20),
-                Divider(color: Colors.white.withOpacity(0.2)),
+                Divider(color: Colors.white.withValues(alpha: 0.2)),
                 const SizedBox(height: 20),
                 _buildInfoRow(
                   FontAwesomeIcons.calendar,
@@ -177,13 +189,13 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
+  Widget _buildInfoRow(FaIconData icon, String label, String value) {
     return Row(
       children: [
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: AppTheme.primaryColor.withOpacity(0.2),
+            color: AppTheme.primaryColor.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(12),
           ),
           child: FaIcon(
@@ -246,7 +258,9 @@ class ProfileScreen extends StatelessWidget {
           AppTheme.accentColor,
           () async {
             final authProvider = context.read<AuthProvider>();
+            final todoProvider = context.read<TodoProvider>();
             await authProvider.signOut();
+            todoProvider.reset();
             
             if (context.mounted) {
               Navigator.of(context).pushAndRemoveUntil(
@@ -267,7 +281,7 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildActionButton(
     BuildContext context,
     String label,
-    IconData icon,
+    FaIconData icon,
     Color color,
     VoidCallback onTap,
   ) {
@@ -284,16 +298,16 @@ class ProfileScreen extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            color.withOpacity(0.3),
-            color.withOpacity(0.1),
+            color.withValues(alpha: 0.3),
+            color.withValues(alpha: 0.1),
           ],
         ),
         borderGradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            color.withOpacity(0.5),
-            color.withOpacity(0.2),
+            color.withValues(alpha: 0.5),
+            color.withValues(alpha: 0.2),
           ],
         ),
         child: Row(

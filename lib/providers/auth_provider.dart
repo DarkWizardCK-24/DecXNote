@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 class AuthProvider extends ChangeNotifier {
-  final AuthService _authService = AuthService();
+  final AuthService _authService;
   UserModel? _user;
   bool _isLoading = false;
   String? _errorMessage;
   bool _isInitialized = false;
 
-  StreamSubscription<dynamic>? _authStateSubscription;
+  StreamSubscription<String?>? _authStateSubscription;
 
   UserModel? get user => _user;
   bool get isLoading => _isLoading;
@@ -18,16 +18,21 @@ class AuthProvider extends ChangeNotifier {
   bool get isAuthenticated => _user != null;
   bool get isInitialized => _isInitialized;
 
-  AuthProvider() {
+  AuthProvider({AuthService? service})
+    : _authService = service ?? FirebaseAuthService() {
     _initAuthStateListener();
   }
 
   void _initAuthStateListener() {
     _authStateSubscription = _authService.authStateChanges.listen((
-      firebaseUser,
+      uid,
     ) async {
-      if (firebaseUser != null) {
-        _user = await _authService.getUserData();
+      if (uid != null) {
+        try {
+          _user = await _authService.getUserData();
+        } catch (_) {
+          _user = null;
+        }
       } else {
         _user = null;
       }
@@ -140,6 +145,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> signOut() async {
     await _authService.signOut();
     _user = null;
+    _isInitialized = true;
     notifyListeners();
   }
 

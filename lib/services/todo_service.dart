@@ -2,7 +2,32 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:deck_note/models/todo_model.dart';
 
-class TodoService {
+/// What the app needs from a task store. The real one is Firestore; tests and
+/// screenshots use an in-memory fake.
+abstract class TodoService {
+  Future<TodoModel> createTodo({
+    required String userId,
+    required String title,
+    required String description,
+    required Priority priority,
+    List<ChecklistItem>? checklist,
+    DateTime? dueDate,
+    bool pinned = false,
+  });
+
+  Stream<List<TodoModel>> getTodosStream(String userId);
+  Stream<List<TodoModel>> getCompletedTodosStream(String userId);
+  Future<void> updateTodo(TodoModel todo);
+  Future<void> updateChecklistItem(String taskId, List<ChecklistItem> checklist);
+  Future<void> completeTodo(String taskId);
+  Future<void> markAsIncomplete(String taskId);
+  Future<void> deleteTodo(String taskId);
+
+  /// Writes a todo back under its original id (used by "Undo" after delete).
+  Future<void> restoreTodo(TodoModel todo);
+}
+
+class FirestoreTodoService implements TodoService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Future<String> _generateTaskId() async {
@@ -22,12 +47,15 @@ class TodoService {
     });
   }
 
+  @override
   Future<TodoModel> createTodo({
     required String userId,
     required String title,
     required String description,
     required Priority priority,
     List<ChecklistItem>? checklist,
+    DateTime? dueDate,
+    bool pinned = false,
   }) async {
     try {
       final taskId = await _generateTaskId();
@@ -44,6 +72,8 @@ class TodoService {
         createdAt: DateTime.now(),
         colorIndex: colorIndex,
         checklist: checklist ?? [],
+        dueDate: dueDate,
+        pinned: pinned,
       );
 
       final todoMap = todo.toMap();
@@ -56,6 +86,7 @@ class TodoService {
     }
   }
 
+  @override
   Stream<List<TodoModel>> getTodosStream(String userId) {
     return _firestore
         .collection('todos')
@@ -69,7 +100,9 @@ class TodoService {
             try {
               final todo = TodoModel.fromMap(doc.data());
               todos.add(todo);
-            } catch (e) {}
+            } catch (_) {
+              // Skip documents that cannot be parsed.
+            }
           }
 
           // Sort by updatedAt (for restored tasks) or createdAt, newest first
@@ -83,6 +116,7 @@ class TodoService {
         });
   }
 
+  @override
   Stream<List<TodoModel>> getCompletedTodosStream(String userId) {
     return _firestore
         .collection('todos')
@@ -96,19 +130,23 @@ class TodoService {
             try {
               final todo = TodoModel.fromMap(doc.data());
               todos.add(todo);
-            } catch (e) {}
+            } catch (_) {
+              // Skip documents that cannot be parsed.
+            }
           }
 
           // Sort by completedAt, newest first
           todos.sort((a, b) {
-            if (a.completedAt == null || b.completedAt == null) return 0;
-            return b.completedAt!.compareTo(a.completedAt!);
+            final aDate = a.completedAt ?? a.updatedAt ?? a.createdAt;
+            final bDate = b.completedAt ?? b.updatedAt ?? b.createdAt;
+            return bDate.compareTo(aDate);
           });
 
           return todos;
         });
   }
 
+  @override
   Future<void> updateTodo(TodoModel todo) async {
     try {
       final updatedTodo = todo.copyWith(updatedAt: DateTime.now());
@@ -121,6 +159,7 @@ class TodoService {
     }
   }
 
+  @override
   Future<void> updateChecklistItem(String taskId, List<ChecklistItem> checklist) async {
     try {
       await _firestore.collection('todos').doc(taskId).update({
@@ -132,6 +171,7 @@ class TodoService {
     }
   }
 
+  @override
   Future<void> completeTodo(String taskId) async {
     try {
       await _firestore.collection('todos').doc(taskId).update({
@@ -144,6 +184,7 @@ class TodoService {
     }
   }
 
+  @override
   Future<void> markAsIncomplete(String taskId) async {
     try {
       await _firestore.collection('todos').doc(taskId).update({
@@ -156,11 +197,17 @@ class TodoService {
     }
   }
 
+  @override
   Future<void> deleteTodo(String taskId) async {
     try {
       await _firestore.collection('todos').doc(taskId).delete();
     } catch (e) {
       rethrow;
     }
+  }
+
+  @override
+  Future<void> restoreTodo(TodoModel todo) async {
+    await _firestore.collection('todos').doc(todo.taskId).set(todo.toMap());
   }
 }

@@ -5,7 +5,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 class GlassTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
-  final IconData prefixIcon;
+  final FaIconData prefixIcon;
   final Widget? suffixIcon;
   final bool obscureText;
   final TextInputType? keyboardType;
@@ -34,12 +34,12 @@ class GlassTextField extends StatelessWidget {
       linearGradient: LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [Colors.white.withOpacity(0.1), Colors.white.withOpacity(0.05)],
+        colors: [Colors.white.withValues(alpha: 0.1), Colors.white.withValues(alpha: 0.05)],
       ),
       borderGradient: LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [Colors.white.withOpacity(0.2), Colors.white.withOpacity(0.1)],
+        colors: [Colors.white.withValues(alpha: 0.2), Colors.white.withValues(alpha: 0.1)],
       ),
       child: TextFormField(
         controller: controller,
@@ -50,14 +50,14 @@ class GlassTextField extends StatelessWidget {
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: TextStyle(
-            color: Colors.white.withOpacity(0.5),
+            color: Colors.white.withValues(alpha: 0.5),
             fontSize: 16,
           ),
           prefixIcon: Padding(
             padding: const EdgeInsets.only(left: 16, right: 12),
             child: FaIcon(
               prefixIcon,
-              color: Colors.white.withOpacity(0.7),
+              color: Colors.white.withValues(alpha: 0.7),
               size: 20,
             ),
           ),

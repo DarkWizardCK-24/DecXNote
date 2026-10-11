@@ -3,6 +3,7 @@ import 'package:deck_note/screens/home_screen.dart';
 import 'package:deck_note/theme/app_theme.dart';
 import 'package:deck_note/widgets/glass_button.dart';
 import 'package:deck_note/widgets/glass_text_field.dart';
+import 'package:deck_note/utils/breakpoints.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -74,7 +75,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: EdgeInsets.symmetric(
+                horizontal: contentGutter(context),
+                vertical: 24,
+              ),
               child: Form(
                 key: _formKey,
                 child: Column(
@@ -87,7 +91,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         gradient: AppTheme.primaryGradient,
                         boxShadow: [
                           BoxShadow(
-                            color: AppTheme.primaryColor.withOpacity(0.3),
+                            color: AppTheme.primaryColor.withValues(alpha: 0.3),
                             blurRadius: 20,
                             spreadRadius: 5,
                           ),

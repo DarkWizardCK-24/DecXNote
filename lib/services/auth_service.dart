@@ -2,12 +2,34 @@ import 'package:deck_note/models/user_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class AuthService {
+/// What the app needs from an auth backend. The real one talks to Firebase;
+/// tests and screenshots use an in-memory fake.
+abstract class AuthService {
+  /// Emits the signed-in user's Firebase uid, or null when signed out.
+  Stream<String?> get authStateChanges;
+
+  Future<UserModel?> signUp({
+    required String name,
+    required String email,
+    required String password,
+  });
+
+  Future<UserModel?> signIn({required String email, required String password});
+
+  Future<UserModel?> getUserData();
+
+  Future<void> updateUserProfile({required String name, required String email});
+
+  Future<void> signOut();
+}
+
+class FirebaseAuthService implements AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  User? get currentUser => _auth.currentUser;
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  @override
+  Stream<String?> get authStateChanges =>
+      _auth.authStateChanges().map((user) => user?.uid);
 
   Future<String> _generateUserId() async {
     final counterDoc = _firestore.collection('counters').doc('userId');
@@ -26,6 +48,7 @@ class AuthService {
     });
   }
 
+  @override
   Future<UserModel?> signUp({
     required String name,
     required String email,
@@ -59,6 +82,7 @@ class AuthService {
     }
   }
 
+  @override
   Future<UserModel?> signIn({
     required String email,
     required String password,
@@ -83,6 +107,7 @@ class AuthService {
     }
   }
 
+  @override
   Future<UserModel?> getUserData() async {
     try {
       final user = _auth.currentUser;
@@ -98,6 +123,7 @@ class AuthService {
     }
   }
 
+  @override
   Future<void> updateUserProfile({
     required String name,
     required String email,
@@ -122,6 +148,7 @@ class AuthService {
     }
   }
 
+  @override
   Future<void> signOut() async {
     await _auth.signOut();
   }

@@ -1,12 +1,12 @@
 {
-    "name": "deck_note",
-    "short_name": "deck_note",
+    "name": "DecXNote",
+    "short_name": "DecXNote",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#0A0E27",
+    "theme_color": "#FF6F61",
+    "description": "A modern card-based to-do app.",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {

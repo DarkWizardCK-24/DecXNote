@@ -32,8 +32,8 @@ class GlassButton extends StatelessWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Colors.grey.withOpacity(0.3),
-                  Colors.grey.withOpacity(0.2),
+                  Colors.grey.withValues(alpha: 0.3),
+                  Colors.grey.withValues(alpha: 0.2),
                 ],
               )
             : const LinearGradient(
@@ -48,8 +48,8 @@ class GlassButton extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white.withOpacity(0.3),
-            Colors.white.withOpacity(0.1),
+            Colors.white.withValues(alpha: 0.3),
+            Colors.white.withValues(alpha: 0.1),
           ],
         ),
         child: child,

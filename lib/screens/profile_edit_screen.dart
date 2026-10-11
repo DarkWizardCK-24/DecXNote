@@ -2,6 +2,7 @@ import 'package:deck_note/providers/auth_provider.dart';
 import 'package:deck_note/theme/app_theme.dart';
 import 'package:deck_note/widgets/glass_button.dart';
 import 'package:deck_note/widgets/glass_text_field.dart';
+import 'package:deck_note/utils/breakpoints.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -91,7 +92,10 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
               _buildAppBar(),
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
+                  padding: EdgeInsets.symmetric(
+                horizontal: contentGutter(context),
+                vertical: 24,
+              ),
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -105,7 +109,7 @@ class _ProfileEditScreenState extends State<ProfileEditScreen> {
                               gradient: AppTheme.primaryGradient,
                               boxShadow: [
                                 BoxShadow(
-                                  color: AppTheme.primaryColor.withOpacity(0.3),
+                                  color: AppTheme.primaryColor.withValues(alpha: 0.3),
                                   blurRadius: 20,
                                   spreadRadius: 5,
                                 ),

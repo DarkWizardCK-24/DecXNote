@@ -1,7 +1,10 @@
 import 'package:deck_note/models/todo_model.dart';
 import 'package:deck_note/providers/todo_provider.dart';
 import 'package:deck_note/theme/app_theme.dart';
+import 'package:deck_note/utils/breakpoints.dart';
+import 'package:deck_note/utils/todo_actions.dart';
 import 'package:deck_note/widgets/edit_todo_dialog.dart';
+import 'package:deck_note/widgets/stats_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -9,80 +12,20 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import 'package:glassmorphism/glassmorphism.dart';
 
+/// Finished tasks plus a progress summary. On phones it is its own page; on
+/// wide screens it is a section of the main shell ([embedded]).
 class CompletedTodosScreen extends StatelessWidget {
-  const CompletedTodosScreen({super.key});
+  final bool embedded;
 
-  void _showDeleteConfirmation(BuildContext context, TodoModel todo) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: AppTheme.cardColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            FaIcon(
-              FontAwesomeIcons.triangleExclamation,
-              color: Colors.orange,
-              size: 24,
-            ),
-            SizedBox(width: 10),
-            Text('Delete Task', style: TextStyle(color: Colors.white)),
-          ],
-        ),
-        content: Text(
-          'Are you sure you want to permanently delete "${todo.title}"?',
-          style: TextStyle(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text('Cancel', style: TextStyle(color: Colors.white70)),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              final todoProvider = context.read<TodoProvider>();
-              final success = await todoProvider.deleteTodo(todo.taskId);
-
-              Navigator.of(dialogContext).pop();
-
-              if (success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Row(
-                      children: [
-                        FaIcon(FontAwesomeIcons.trash, color: Colors.white),
-                        SizedBox(width: 10),
-                        Text('Task deleted permanently!'),
-                      ],
-                    ),
-                    backgroundColor: AppTheme.accentColor,
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.accentColor,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            child: Text('Delete'),
-          ),
-        ],
-      ),
-    );
-  }
+  const CompletedTodosScreen({super.key, this.embedded = false});
 
   void _showOptionsBottomSheet(BuildContext context, TodoModel todo) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      constraints: const BoxConstraints(maxWidth: 520),
       builder: (bottomSheetContext) => Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -97,62 +40,48 @@ class CompletedTodosScreen extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Container(
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.3),
+                  color: Colors.white.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ListTile(
-                leading: FaIcon(
+                leading: const FaIcon(
                   FontAwesomeIcons.rotateLeft,
-                  color: Colors.blue,
+                  color: AppTheme.info,
                 ),
-                title: Text(
-                  'Mark as Incomplete',
-                  style: TextStyle(color: Colors.white),
-                ),
+                title: const Text('Mark as Incomplete'),
                 onTap: () async {
                   final todoProvider = context.read<TodoProvider>();
                   final success = await todoProvider.markAsIncomplete(
                     todo.taskId,
                   );
 
-                  Navigator.of(bottomSheetContext).pop();
+                  if (bottomSheetContext.mounted) {
+                    Navigator.of(bottomSheetContext).pop();
+                  }
 
-                  if (success) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Row(
-                          children: [
-                            FaIcon(
-                              FontAwesomeIcons.rotateLeft,
-                              color: Colors.white,
-                            ),
-                            SizedBox(width: 10),
-                            Text('Task moved back to active tasks!'),
-                          ],
-                        ),
-                        backgroundColor: Colors.blue,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
+                  if (success && context.mounted) {
+                    showAppSnack(
+                      context,
+                      'Task moved back to active tasks!',
+                      icon: FontAwesomeIcons.rotateLeft,
+                      color: AppTheme.info,
                     );
                   }
                 },
               ),
               ListTile(
-                leading: FaIcon(
+                leading: const FaIcon(
                   FontAwesomeIcons.penToSquare,
-                  color: Colors.orange,
+                  color: AppTheme.warning,
                 ),
-                title: Text('Edit Task', style: TextStyle(color: Colors.white)),
+                title: const Text('Edit Task'),
                 onTap: () {
                   Navigator.of(bottomSheetContext).pop();
                   showDialog(
@@ -162,20 +91,17 @@ class CompletedTodosScreen extends StatelessWidget {
                 },
               ),
               ListTile(
-                leading: FaIcon(
+                leading: const FaIcon(
                   FontAwesomeIcons.trash,
                   color: AppTheme.accentColor,
                 ),
-                title: Text(
-                  'Delete Task',
-                  style: TextStyle(color: Colors.white),
-                ),
+                title: const Text('Delete Task'),
                 onTap: () {
                   Navigator.of(bottomSheetContext).pop();
-                  _showDeleteConfirmation(context, todo);
+                  confirmAndDelete(context, todo, permanent: true);
                 },
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
             ],
           ),
         ),
@@ -185,53 +111,94 @@ class CompletedTodosScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final wide = Breakpoints.isWide(context);
+    final body = Consumer<TodoProvider>(
+      builder: (context, todoProvider, child) {
+        final done = todoProvider.completedTodos;
+        final panel = StatsPanel(stats: todoProvider.stats);
+
+        if (wide) {
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(28, 0, 28, 0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: done.isEmpty
+                      ? _buildEmptyState()
+                      : GridView.builder(
+                          padding: const EdgeInsets.only(bottom: 24),
+                          gridDelegate:
+                              const SliverGridDelegateWithMaxCrossAxisExtent(
+                                maxCrossAxisExtent: 520,
+                                mainAxisExtent: 180,
+                                crossAxisSpacing: 20,
+                                mainAxisSpacing: 20,
+                              ),
+                          itemCount: done.length,
+                          itemBuilder: (context, i) =>
+                              _buildCompletedTodoItem(context, done[i]),
+                        ),
+                ),
+                const SizedBox(width: 24),
+                SizedBox(width: 300, child: panel),
+              ],
+            ),
+          );
+        }
+
+        return ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            panel,
+            const SizedBox(height: 20),
+            if (done.isEmpty)
+              SizedBox(height: 260, child: _buildEmptyState())
+            else
+              for (var i = 0; i < done.length; i++)
+                _buildCompletedTodoItem(context, done[i])
+                    .animate()
+                    .fadeIn(delay: (50 * i).ms)
+                    .slideX(begin: 0.2, end: 0),
+          ],
+        );
+      },
+    );
+
+    final content = Column(
+      children: [
+        _buildAppBar(context, wide),
+        Expanded(child: body),
+      ],
+    );
+
+    if (embedded) return content;
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(gradient: AppTheme.backgroundGradient),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildAppBar(context),
-              Expanded(
-                child: Consumer<TodoProvider>(
-                  builder: (context, todoProvider, child) {
-                    if (todoProvider.completedTodos.isEmpty) {
-                      return _buildEmptyState();
-                    }
-
-                    return ListView.builder(
-                      padding: const EdgeInsets.all(20),
-                      itemCount: todoProvider.completedTodos.length,
-                      itemBuilder: (context, index) {
-                        return _buildCompletedTodoItem(
-                              context,
-                              todoProvider.completedTodos[index],
-                            )
-                            .animate()
-                            .fadeIn(delay: (50 * index).ms)
-                            .slideX(begin: 0.2, end: 0);
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
+        child: SafeArea(child: content),
       ),
     );
   }
 
-  Widget _buildAppBar(BuildContext context) {
+  Widget _buildAppBar(BuildContext context, bool wide) {
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: embedded && wide
+          ? const EdgeInsets.fromLTRB(28, 24, 28, 18)
+          : const EdgeInsets.all(20),
       child: Row(
         children: [
-          IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: const FaIcon(FontAwesomeIcons.arrowLeft, color: Colors.white),
-          ),
-          const SizedBox(width: 10),
+          if (!embedded) ...[
+            IconButton(
+              tooltip: 'Back',
+              onPressed: () => Navigator.of(context).pop(),
+              icon: const FaIcon(
+                FontAwesomeIcons.arrowLeft,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 10),
+          ],
           const Text(
             'Completed Tasks',
             style: TextStyle(
@@ -253,7 +220,7 @@ class CompletedTodosScreen extends StatelessWidget {
           FaIcon(
             FontAwesomeIcons.circleCheck,
             size: 80,
-            color: Colors.white.withOpacity(0.3),
+            color: Colors.white.withValues(alpha: 0.3),
           ),
           const SizedBox(height: 20),
           const Text(
@@ -265,7 +232,7 @@ class CompletedTodosScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          Text(
+          const Text(
             'Complete tasks to see them here',
             style: TextStyle(fontSize: 16, color: Colors.white70),
           ),
@@ -275,13 +242,16 @@ class CompletedTodosScreen extends StatelessWidget {
   }
 
   Widget _buildCompletedTodoItem(BuildContext context, TodoModel todo) {
-    final cardColor = AppTheme.cardColors[todo.colorIndex];
+    final cardColor = AppTheme.cardColorAt(todo.colorIndex);
+    final doneAt = todo.completedAt ?? todo.updatedAt ?? todo.createdAt;
 
     return GestureDetector(
       onTap: () => _showOptionsBottomSheet(context, todo),
       onLongPress: () => _showOptionsBottomSheet(context, todo),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 15),
+        margin: embedded || Breakpoints.isWide(context)
+            ? EdgeInsets.zero
+            : const EdgeInsets.only(bottom: 15),
         child: GlassmorphicContainer(
           width: double.infinity,
           height: 180,
@@ -292,12 +262,18 @@ class CompletedTodosScreen extends StatelessWidget {
           linearGradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [cardColor.withOpacity(0.2), cardColor.withOpacity(0.1)],
+            colors: [
+              cardColor.withValues(alpha: 0.2),
+              cardColor.withValues(alpha: 0.1),
+            ],
           ),
           borderGradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [cardColor.withOpacity(0.3), cardColor.withOpacity(0.1)],
+            colors: [
+              cardColor.withValues(alpha: 0.3),
+              cardColor.withValues(alpha: 0.1),
+            ],
           ),
           child: Padding(
             padding: const EdgeInsets.all(20),
@@ -310,6 +286,8 @@ class CompletedTodosScreen extends StatelessWidget {
                     Expanded(
                       child: Text(
                         todo.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -318,6 +296,7 @@ class CompletedTodosScreen extends StatelessWidget {
                         ),
                       ),
                     ),
+                    const SizedBox(width: 8),
                     Row(
                       children: [
                         Container(
@@ -326,22 +305,25 @@ class CompletedTodosScreen extends StatelessWidget {
                             vertical: 5,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.green.withOpacity(0.3),
+                            color: AppTheme.success.withValues(alpha: 0.25),
                             borderRadius: BorderRadius.circular(15),
-                            border: Border.all(color: Colors.green, width: 1),
+                            border: Border.all(
+                              color: AppTheme.success,
+                              width: 1,
+                            ),
                           ),
                           child: const Row(
                             children: [
                               FaIcon(
                                 FontAwesomeIcons.circleCheck,
                                 size: 12,
-                                color: Colors.green,
+                                color: AppTheme.success,
                               ),
                               SizedBox(width: 5),
                               Text(
                                 'DONE',
                                 style: TextStyle(
-                                  color: Colors.green,
+                                  color: AppTheme.success,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 10,
                                 ),
@@ -349,10 +331,10 @@ class CompletedTodosScreen extends StatelessWidget {
                             ],
                           ),
                         ),
-                        SizedBox(width: 8),
+                        const SizedBox(width: 8),
                         InkWell(
                           onTap: () => _showOptionsBottomSheet(context, todo),
-                          child: Icon(
+                          child: const Icon(
                             Icons.more_vert,
                             color: Colors.white70,
                             size: 20,
@@ -367,23 +349,23 @@ class CompletedTodosScreen extends StatelessWidget {
                   todo.description,
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withValues(alpha: 0.7),
                     decoration: TextDecoration.lineThrough,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 15),
+                const Spacer(),
                 Row(
                   children: [
-                    FaIcon(
+                    const FaIcon(
                       FontAwesomeIcons.clock,
                       size: 12,
                       color: Colors.white70,
                     ),
                     const SizedBox(width: 5),
                     Text(
-                      'Completed: ${DateFormat('MMM dd, yyyy').format(todo.completedAt!)}',
+                      'Completed: ${DateFormat('MMM dd, yyyy').format(doneAt)}',
                       style: const TextStyle(
                         color: Colors.white70,
                         fontSize: 12,
